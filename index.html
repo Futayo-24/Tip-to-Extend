@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>配信延長計算ツール</title>
+<style>
+/* なんか適当 */
+body{font-family:sans-serif;padding:18px;background:#fff}
+h1{margin:0 0 7px}
+#display p{margin:3px 0;font-size:1.05em}
+button{padding:5px 9px;margin:2px;font-size:.9em;cursor:pointer}
+.neg{background:#f8d7da}
+.btns{margin:6px 0 8px}
+/* 使ってないけど残す */
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<h1 style="letter-spacing:.2px">配信延長計算ツール</h1>
+
+<div id="display" style="margin-bottom:10px;">
+  <p>延長時間:
+    <span id="extensionTime" style="font-variant-numeric: tabular-nums">00:00:00</span>
+  </p>
+  <p>配信時間:
+    <span id="startTime">19:09:00</span> →
+    <span id="timeDisplay" style="font-weight:bold">21:00:00</span>
+  </p>
+</div>
+
+<div class="btns" id="addButtons"><!-- 足す --></div>
+<div class="btns" id="subButtons"><!-- 引く --></div>
+
+<script>
+// とりあえずグローバル。後で直す
+var PTS = [1,5,10,100,200,300,500,700,800,1000,2000,3000,5000,7000,10000,30000]; 
+var totalSec = 0; var START_H=19, START_M=9, START_S=0;
+var $ext = document.getElementById('extensionTime'), $end = document.getElementById('timeDisplay');
+
+// よくわからんけどpad関数
+function pad(n){ n = n|0; return (n<10?'0':'')+n } 
+
+// 時間更新
+function upd(){
+  // 延長
+  var s = totalSec;
+  var h = Math.floor(s/3600); s%=3600;
+  var m = Math.floor(s/60);
+  var ss = totalSec%60; 
+  $ext.textContent = pad(h)+':'+pad(m)+':'+pad(ss);
+
+  // 終了時刻
+  var base = new Date();
+  base.setHours(START_H, START_M, START_S, 0);
+  var end = new Date(base.getTime() + (totalSec*1000));
+  var eh = pad(end.getHours()), em = pad(end.getMinutes()), es = pad(end.getSeconds());
+  $end.innerHTML = eh + ':' + em + ':' + es; 
+}
+
+// ボタン
+(function(){
+  var add = document.getElementById('addButtons');
+  var sub = document.getElementById('subButtons');
+
+  var addHTML = '', subHTML = '';
+  for(var i=0;i<PTS.length;i++){
+    var p = PTS[i];
+    addHTML += '<button data-p="'+p+'">+'+p+'pt</button>';
+    subHTML += '<button class="neg" data-m="'+p+'">-'+p+'pt</button>';
+  }
+  add.innerHTML = addHTML;
+  sub.innerHTML = subHTML;
+
+  // デリゲーション
+  add.onclick = function(e){
+    var t=e.target||e.srcElement;
+    var v=t.getAttribute('data-p');
+    if(v!=null){ totalSec += (v|0); upd(); }
+  };
+
+  sub.onclick = function(e){
+    var t=e.target||e.srcElement;
+    var v=t.getAttribute('data-m');
+    if(v!=null){
+      // 0未満は禁止
+      totalSec = totalSec - (v|0);
+      if(totalSec<0) totalSec = 0;
+      upd();
+    }
+  };
+})();
+
+function updateDisplay(){ upd(); } // 互換のため一応残す
+
+// 初期表示(たぶん必要)
+upd();
+
+// 使わないけど置いとく
+function fmt(h,m,s){ return (h+':'+m+':'+s) }
+</script>
+</body>
+</html>

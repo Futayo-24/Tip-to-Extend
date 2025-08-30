@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>配信延長計算ツール</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { margin-bottom: 10px; }
+    #display { margin-bottom: 15px; }
+    #display p { margin: 4px 0; font-size: 1.1em; }
+    .btn-group { margin-bottom: 10px; }
+    .btn-group button { margin: 3px; padding: 6px 10px; font-size: 0.9em; }
+    .neg { background: #f8d7da; }
+  </style>
+</head>
+<body>
+  <h1>配信延長計算ツール</h1>
+  <div id="display">
+    <p>延長時間: <span id="extensionTime">00:00:00</span></p>
+    <p>配信時間: 19:09:00 → <span id="timeDisplay">21:00:00</span></p>
+  </div>
+
+  <div class="btn-group" id="addButtons">
+    <!-- 投げ銭 pt ボタン -->
+  </div>
+  <div class="btn-group" id="subButtons">
+    <!-- 間違え用 -pt ボタン -->
+  </div>
+
+  <script>
+    // ボタン表示用データ
+    const pts = [1,5,10,100,200,300,500,700,800,1000,2000,3000,5000,7000,10000,30000];
+    let totalSec = 0;
+
+    // 時間表示更新
+    function updateDisplay() {
+      // 延長時間 (HH:MM:SS)
+      let sec = totalSec;
+      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      sec %= 3600;
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      document.getElementById('extensionTime').textContent = `${h}:${m}:${s}`;
+
+      // 終了時間 (21:00:00 + totalSec)
+      const start = new Date();
+      start.setHours(19, 9, 0, 0);
+      const end = new Date(start.getTime() + totalSec * 1000);
+      const eh = String(end.getHours()).padStart(2, '0');
+      const em = String(end.getMinutes()).padStart(2, '0');
+      const es = String(end.getSeconds()).padStart(2, '0');
+      document.getElementById('timeDisplay').textContent = `${eh}:${em}:${es}`;
+    }
+
+    // ボタン生成
+    const addContainer = document.getElementById('addButtons');
+    const subContainer = document.getElementById('subButtons');
+    pts.forEach(p => {
+      const btn = document.createElement('button');
+      btn.textContent = `+${p}pt`;
+      btn.onclick = () => { totalSec += p; updateDisplay(); };
+      addContainer.appendChild(btn);
+
+      const subBtn = document.createElement('button');
+      subBtn.textContent = `-${p}pt`;
+      subBtn.classList.add('neg');
+      subBtn.onclick = () => {
+        totalSec = Math.max(0, totalSec - p);
+        updateDisplay();
+      };
+      subContainer.appendChild(subBtn);
+    });
+
+    // 初期表示
+    updateDisplay();
+  </script>
+</body>
+</html>
